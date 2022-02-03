@@ -1,0 +1,117 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">   
+        <style>
+        .card { margin:20px 0; }
+        </style> 
+    </head>
+    <body>
+        <div class="container">
+            <div id="blockchain-explorer">
+                <div class="columns">
+                    <div class="column is-two-thirds">
+                        <div v-if="blockchain !== null">
+                            <div class="card" v-for="(block, index) in blockchain.blocks.slice().reverse()">
+                                <header class="card-header">
+                                    <p class="card-header-title">Block #{{block.blockId}}</p>
+                                </header>
+                                <div class="card-content">
+                                    <p>miner: {{getShortPublicKey(block.minerPublicKey)}}</p>
+                                    <p>nonce: {{ block.nonce }}</p>
+                                    <p>timestamp: {{ block.timestamp }}</p>        
+                                    <table class="table" v-for="tx in block.transactions">
+                                        <tbody>
+                                            <tr>
+                                                <td>Inputs</td>
+                                                <td>
+                                                    <table class="table">
+                                                        <thead>
+                                                            <tr><th>Owner</th><th>Amount</th><th>Spent</th></tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr v-for="input in tx.inputs"><td>{{getShortPublicKey(input.owner)}}</td><td>{{input.amount}}</td><td>{{input.spent}}</td></tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Outputs</td>
+                                                <td>
+                                                    <table class="table">
+                                                        <thead>
+                                                            <tr><th>Owner</th><th>Amount</th><th>Spent</th></tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr v-for="output in tx.outputs"><td>{{getShortPublicKey(output.owner)}}</td><td>{{output.amount}}</td><td>{{output.spent}}</td></tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="card-footer">
+                                    <pre>{{ JSON.stringify(block) }}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="card" v-for="miner in miners">
+                            <header class="card-header">
+                                <p class="card-header-title">{{getShortPublicKey(miner.publicKey)}}</p>
+                            </header>
+                            <div class="card-content">
+                                <p>Blocks mined: {{miner.blockTotal}}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script src="https://unpkg.com/vue@next"></script>
+    <script>
+        const BlockchainExplorer = {
+            data() {
+                return {
+                    blockchain: null,
+                    miners: [],
+                    getBlockchainIntervalId: null,
+                    getMinersIntervalId: null
+                }
+            },
+            computed: {
+                reversedBlocks: function () {
+                    return this.blockchain.blocks.splice().reverse();
+                }
+            },
+            mounted() {
+                this.getBlockchain();
+                this.getBlockchainIntervalId = setInterval(this.getBlockchain, 3000);            
+                this.getMiners();
+                this.getMinersIntervalId = setInterval(this.getMiners, 3000);            
+            },
+            methods: {
+                getBlockchain: function() {
+                    fetch('https://localhost:3042/blockchain')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.blockchain = data;
+                    });                            
+                },
+                getMiners: function() {
+                    fetch('https://localhost:3042/miners')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.miners = data;
+                    });                            
+                },
+                getShortPublicKey: function(publicKey) {
+                    return `${publicKey.substring(0, 10)}...${publicKey.substring(publicKey.length - 10)}`;
+                }
+            }
+        };  
+        Vue.createApp(BlockchainExplorer).mount('#blockchain-explorer');
+    </script>
+</html>
