@@ -17,14 +17,15 @@ class MerkleTree {
     }
     getRoot(currentLevel) {
         currentLevel = currentLevel || this.leaves;
+        console.log(currentLevel);
         let newLevel = [];
         if (currentLevel.length === 1)
-            return currentLevel[0];
+            return this.concat(currentLevel[0]);
         for (let i = 0; i < currentLevel.length; i += 2) {
             if (currentLevel[i + 1] != null) {
                 newLevel.push(this.concat(currentLevel[i], currentLevel[i + 1]));
             } else {
-                newLevel.push(currentLevel[i]);
+                newLevel.push(this.concat(currentLevel[i]));
             }
         }
         return this.getRoot(newLevel);

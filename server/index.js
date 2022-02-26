@@ -43,7 +43,7 @@ app.get('/miners', (req, res) => {
 // });
 
 app.post('/submitBlock', (req, res) => {
-    console.log(req.body)
+    //console.log(req.body)
 //   const errors = verifyTransaction(req.body.txData, req.body.signature, req.body.publicKey);  
 //   const isValid = errors.length === 0;
 //   if (isValid) {
